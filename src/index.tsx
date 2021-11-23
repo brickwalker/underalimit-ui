@@ -4,7 +4,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import App from "./components/App";
 import AgeDisclaimer from "./components/AgeDisclaimer";
 import Calculator from "./components/Calculator";
-import Contacts from "./components/Contacts";
 import NoMatch from "./components/NoMatch";
 import "@fontsource/roboto/300.css";
 import "@fontsource/roboto/400.css";
@@ -18,7 +17,6 @@ ReactDOM.render(
         <Route path="/" element={<App />}>
         <Route index element={<AgeDisclaimer />} />
           <Route path="calculator" element={<Calculator />} />
-          <Route path="contacts" element={<Contacts />} />
           <Route path="*" element={<NoMatch />} />
         </Route>
       </Routes>

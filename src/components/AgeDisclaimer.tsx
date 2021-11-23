@@ -1,13 +1,19 @@
 import * as React from "react";
 import { Navigate } from "react-router-dom";
 import {
+  Alert,
   Button,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle,
+  Grid,
 } from "@mui/material";
+import {
+  IDisclaimerDialogProps,
+  IDisclaimerDialogState,
+} from "../interfaces/IAgeDisclaimer";
 
 const ageStatus = {
   title: "Please confirm your age.",
@@ -17,39 +23,29 @@ const ageStatus = {
 };
 
 export default class AgeDisclaimer extends React.Component {
-
-    constructor(props: any) {
-        super(props);
-        this.checkPass = this.checkPass.bind(this);
-    }
-
   state = {
     pass: false,
   };
 
-  checkPass(reply: string) {
+  checkPass = (reply: string) => {
     reply === ageStatus.pass && this.setState({ pass: true });
-  }
+  };
 
   render() {
     return (
-      <div>
-        <div>{ageStatus.description}</div>
+      <Grid container direction="column">
+        <Alert severity="warning">{ageStatus.description}</Alert>
         <DisclaimerDialog checkPass={this.checkPass} />
         {this.state.pass && <Navigate to="/calculator" />}
-      </div>
+      </Grid>
     );
   }
 }
 
-interface IDDProps {
-    checkPass: (reply: string) => void
-}
-interface IDDState {
-    open: boolean
-}
-
-export class DisclaimerDialog extends React.Component<IDDProps, IDDState> {
+export class DisclaimerDialog extends React.Component<
+  IDisclaimerDialogProps,
+  IDisclaimerDialogState
+> {
   state = {
     open: true,
   };
@@ -59,10 +55,6 @@ export class DisclaimerDialog extends React.Component<IDDProps, IDDState> {
   };
 
   handleClose = (e: React.BaseSyntheticEvent) => {
-    console.log(e.target.textContent);
-
-    //const message = e.target.textContent;
-
     this.setState({ open: false });
     this.props.checkPass(e.target.textContent);
   };
@@ -83,9 +75,7 @@ export class DisclaimerDialog extends React.Component<IDDProps, IDDState> {
         </DialogContent>
         <DialogActions>
           <Button onClick={this.handleClose}>{ageStatus.fail}</Button>
-          <Button onClick={this.handleClose} autoFocus>
-            {ageStatus.pass}
-          </Button>
+          <Button onClick={this.handleClose}>{ageStatus.pass}</Button>
         </DialogActions>
       </Dialog>
     );
