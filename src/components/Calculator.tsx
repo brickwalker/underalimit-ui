@@ -22,6 +22,10 @@ import gintonicImg from "../images/gintonic.png";
 import wgingeraleImg from "../images/wgingerale.png";
 import mojitoImg from "../images/mojito.png";
 import spritzImg from "../images/aperolspritz.png";
+import whiskeyImg from "../images/whiskey.png";
+import tequilaImg from "../images/tequila.png";
+import vodkaImg from "../images/vodka.png";
+import brandyImg from "../images/brandy.png";
 
 import {
   IDrinkSelectorProps,
@@ -60,6 +64,12 @@ const cocktails: IDrink[] = [
   { name: "Aperol Spritz", src: spritzImg, alcPercent: 11 },
 ];
 
+const booze: IDrink[] = [
+  { name: "Whiskey", src: whiskeyImg, alcPercent: 40 },
+  { name: "Tequila", src: tequilaImg, alcPercent: 40 },
+  { name: "Vodka", src: vodkaImg, alcPercent: 40 },
+  { name: "Brandy", src: brandyImg, alcPercent: 40 },
+];
 export default class Calculator extends React.Component {
   state = {
     drinkType: "",
@@ -84,10 +94,11 @@ export default class Calculator extends React.Component {
       case "wine":
         alc = wines;
         break;
-        case "cocktails":
-          alc = cocktails;
-          break;
-      default:
+      case "cocktails":
+        alc = cocktails;
+        break;
+      case "booze":
+        alc = booze;
         break;
     }
     return this.state.drinkType === "" ? (
