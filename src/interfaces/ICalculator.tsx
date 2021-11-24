@@ -5,3 +5,15 @@ export interface IDrinkSelectorProps {
 }
 
 export interface IDrinkSelectorState {}
+
+export interface IDrink {
+  name: string,
+  src: string,
+  alcPercent: number
+}
+
+export interface IAlcSelectorProps {
+  alc: IDrink[]
+}
+
+export interface IAlcSelectorState {}
