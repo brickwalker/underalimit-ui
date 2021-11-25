@@ -1,7 +1,6 @@
-import { BaseSyntheticEvent } from "react";
 
 export interface IDrinkSelectorProps {
-  setDrink: (e: BaseSyntheticEvent) => void;
+  setDrink: (drinkType: string) => void
 }
 
 export interface IDrinkSelectorState {}
@@ -13,7 +12,18 @@ export interface IDrink {
 }
 
 export interface IAlcSelectorProps {
-  alc: IDrink[]
+  alc: IDrink[],
+  setAlcPercent: (alcPercent: number) => void,
+  enterAlcPercent: (enteredPercent: string) => void
 }
 
-export interface IAlcSelectorState {}
+export interface IAlcSelectorState {
+  myRef: string
+}
+
+export interface IConsumerDetailsProps {
+  placeholder?: string
+}
+
+export interface IConsumerDetailsState {
+}

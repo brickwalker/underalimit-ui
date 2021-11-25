@@ -1,9 +1,12 @@
-import React, { BaseSyntheticEvent } from "react";
+import React from "react";
 import {
   Button,
+  FormControlLabel,
   Grid,
   ImageListItem,
   ImageListItemBar,
+  Radio,
+  RadioGroup,
   TextField,
   Typography,
 } from "@mui/material";
@@ -33,6 +36,8 @@ import {
   IDrink,
   IAlcSelectorProps,
   IAlcSelectorState,
+  IConsumerDetailsProps,
+  IConsumerDetailsState,
 } from "../interfaces/ICalculator";
 
 const drinks = [
@@ -79,10 +84,21 @@ export default class Calculator extends React.Component {
     isLearner: false,
   };
 
-  setDrink = (e: BaseSyntheticEvent): void => {
-    e.target.className === "MuiImageListItem-img"
-      ? this.setState({ drinkType: e.target.alt.toLowerCase() })
-      : this.setState({ drinkType: e.target.innerText.toLowerCase() });
+  setDrink = (drinkType: string): void => {
+    this.setState({ drinkType: drinkType.toLowerCase() });
+  };
+
+  setAlcPercent = (alcPercent: number): void => {
+    this.setState({ alcPercent });
+  };
+
+  enterAlcPercent = (enteredPercent: string): void => {
+    const alcPercent = parseFloat(enteredPercent);
+    if (alcPercent < 0.5 || alcPercent > 100) {
+      alert("Should be between 0.5 and 100");
+    } else {
+      this.setAlcPercent(alcPercent);
+    }
   };
 
   render() {
@@ -101,11 +117,20 @@ export default class Calculator extends React.Component {
         alc = booze;
         break;
     }
-    return this.state.drinkType === "" ? (
-      <DrinkSelector setDrink={this.setDrink} />
-    ) : (
-      <AlcSelector alc={alc} />
-    );
+
+    if (this.state.drinkType === "") {
+      return <DrinkSelector setDrink={this.setDrink} />;
+    } else if (this.state.alcPercent === 0) {
+      return (
+        <AlcSelector
+          alc={alc}
+          setAlcPercent={this.setAlcPercent}
+          enterAlcPercent={this.enterAlcPercent}
+        />
+      );
+    } else if (this.state.alcPercent === 0 || this.state.gender === "") {
+      return <ConsumerDetails />;
+    }
   }
 }
 
@@ -127,7 +152,7 @@ class DrinkSelector extends React.Component<
               item
               key={name}
               style={{ maxWidth: "15em" }}
-              onClick={this.props.setDrink}
+              onClick={() => this.props.setDrink(name)}
             >
               <ImageListItem>
                 <img src={src} alt={name} />
@@ -159,7 +184,7 @@ class AlcSelector extends React.Component<
               item
               key={name}
               style={{ maxWidth: "15em" }}
-              // onClick={this.props.setDrink}
+              onClickCapture={() => this.props.setAlcPercent(alcPercent)}
             >
               <ImageListItem>
                 <img src={src} alt={name} />
@@ -191,13 +216,99 @@ class AlcSelector extends React.Component<
                 required
                 id="input-box"
                 label="Required"
-                value={this.props.alc[0].alcPercent}
+                defaultValue={this.props.alc[0].alcPercent}
               />
             </Grid>
             <Grid item alignItems="stretch" style={{ display: "flex" }}>
-              <Button variant="contained">Submit</Button>
+              <Button
+                variant="contained"
+                onClick={() =>
+                  this.props.enterAlcPercent(
+                    (document.getElementById("input-box") as HTMLInputElement)
+                      .value
+                  )
+                }
+              >
+                Submit
+              </Button>
             </Grid>
           </Grid>
+        </Grid>
+      </Grid>
+    );
+  }
+}
+
+class ConsumerDetails extends React.Component<
+  IConsumerDetailsProps,
+  IConsumerDetailsState
+> {
+  render() {
+    return (
+      <Grid container mt={5} direction="column">
+        <Grid item container justifyContent="center">
+          <Typography variant="h3" color="primary.light" align="center">
+            Please specify
+          </Typography>
+        </Grid>
+        <Grid item container justifyContent="center" mt={2}>
+          <Typography variant="subtitle2" color="primary" align="center">
+            Your body weight, kg
+          </Typography>
+        </Grid>
+        <Grid item container justifyContent="center">
+          <TextField
+            type="number"
+            required
+            id="input-box"
+            label="Required"
+            defaultValue={65}
+            style={{ marginTop: "1em" }}
+          />
+        </Grid>
+        <Grid item container justifyContent="center" mt={2}>
+          <Typography variant="subtitle2" color="primary" align="center">
+            Your birth gender
+          </Typography>
+        </Grid>
+        <Grid item container justifyContent="center">
+          <RadioGroup
+            row
+            aria-label="gender"
+            defaultValue="notProvided"
+            name="radio-buttons-group"
+          >
+            <FormControlLabel
+              value="female"
+              control={<Radio />}
+              label="Female"
+            />
+            <FormControlLabel value="male" control={<Radio />} label="Male" />
+            <FormControlLabel
+              value="notProvided"
+              control={<Radio />}
+              label="Other"
+            />
+          </RadioGroup>
+        </Grid>
+        <Grid item container justifyContent="center" mt={2}>
+          <Typography variant="subtitle2" color="primary" align="center">
+            Whether you are a learner driver
+          </Typography>
+        </Grid>
+        <Grid item container justifyContent="center">
+          <RadioGroup
+            row
+            aria-label="isLearner"
+            defaultValue="false"
+            name="radio-buttons-group"
+          >
+            <FormControlLabel value={false} control={<Radio />} label="No" />
+            <FormControlLabel value={true} control={<Radio />} label="Yes" />
+          </RadioGroup>
+        </Grid>
+        <Grid item container justifyContent="center">
+          <Button variant="contained">Submit</Button>
         </Grid>
       </Grid>
     );
