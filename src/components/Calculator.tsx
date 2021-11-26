@@ -1,6 +1,7 @@
 import React from "react";
 import {
   Button,
+  CircularProgress,
   FormControlLabel,
   Grid,
   ImageListItem,
@@ -84,6 +85,7 @@ export default class Calculator extends React.Component {
     weightKg: 0,
     gender: "",
     isLearner: false,
+    requestSent: false,
     serverReply: null, // TODO
   };
 
@@ -131,16 +133,23 @@ export default class Calculator extends React.Component {
         },
         body: requestData,
       };
+      this.setState({ requestSent: true });
       fetch("http://localhost:4141/portion", init)
         .then((res) => res.json())
         .then((data) => {
           if (data.status !== "OK") {
             console.log("Data not OK", data);
+            this.setState({ requestSent: false });
+            alert("Error happened. Please try again.");
           } else {
             this.setState({ serverReply: data });
           }
         })
-        .catch(() => console.log("Error happened"));
+        .catch((error) => {
+          this.setState({ requestSent: false });
+          alert("Error happened. Please try again.");
+          console.log(error);
+        });
     }
   };
 
@@ -173,7 +182,12 @@ export default class Calculator extends React.Component {
       );
     } else if (this.state.serverReply === null) {
       return (
-        <ConsumerDetails enterConsumerDetails={this.enterConsumerDetails} />
+        <>
+          <ConsumerDetails
+            enterConsumerDetails={this.enterConsumerDetails}
+            loading={this.state.requestSent}
+          />
+        </>
       );
     } else {
       return <CalcResult data={this.state.serverReply} />;
@@ -355,27 +369,31 @@ class ConsumerDetails extends React.Component<
           </RadioGroup>
         </Grid>
         <Grid item container justifyContent="center" mt={3}>
-          <Button
-            variant="contained"
-            onClick={() => {
-              this.props.enterConsumerDetails(
-                (document.getElementById("input-box") as HTMLInputElement)
-                  .value,
-                (
-                  document.querySelector(
-                    '[name="gender-options"]:checked'
-                  ) as HTMLInputElement
-                ).value,
-                (
-                  document.querySelector(
-                    '[name="learner-options"]:checked'
-                  ) as HTMLInputElement
-                ).value
-              );
-            }}
-          >
-            Submit
-          </Button>
+          {this.props.loading ? (
+            <CircularProgress />
+          ) : (
+            <Button
+              variant="contained"
+              onClick={() => {
+                this.props.enterConsumerDetails(
+                  (document.getElementById("input-box") as HTMLInputElement)
+                    .value,
+                  (
+                    document.querySelector(
+                      '[name="gender-options"]:checked'
+                    ) as HTMLInputElement
+                  ).value,
+                  (
+                    document.querySelector(
+                      '[name="learner-options"]:checked'
+                    ) as HTMLInputElement
+                  ).value
+                );
+              }}
+            >
+              Submit
+            </Button>
+          )}
         </Grid>
       </Grid>
     );
@@ -383,8 +401,139 @@ class ConsumerDetails extends React.Component<
 }
 
 class CalcResult extends React.Component<ICalcResultProps, ICalcResultState> {
+  private result = this.props.data.result;
+
+  state = {
+    quantity: this.result[1].portions[0],
+    hours: 0,
+  };
+
+  updateLabel = (drinkSize: string, quantity: number): string => {
+    let result: string;
+    switch (drinkSize) {
+      case "pint":
+        quantity > 1 ? (result = "pints") : (result = "pint");
+        break;
+      case "bottle":
+        quantity > 1 ? (result = "0.5L bottles") : (result = "0.5L bottle");
+        break;
+      case "smallBottle":
+        quantity > 1 ? (result = "0.33L bottles") : (result = "0.33L bottle");
+        break;
+      case "smallCan":
+        quantity > 1 ? (result = "0.25L cans") : (result = "0.25L can");
+        break;
+      case "wineGlass":
+        quantity > 1 ? (result = "0.18L glasses") : (result = "O.18L glass");
+        break;
+      case "cocktailGlass":
+        quantity > 1 ? (result = "0.25L glasses") : (result = "0.25L glass");
+        break;
+      case "shot":
+        quantity > 1 ? (result = "35.5ml shots") : (result = "35.5ml shot");
+        break;
+      default:
+        quantity > 1 ? (result = "litres") : (result = "litre");
+        break;
+    }
+    return result;
+  };
+
+  changeMeasure = (value: string): void => {
+    for (const item of this.result) {
+      item.drinkSize === value &&
+        this.setState({
+          quantity: item.portions[this.state.hours],
+        });
+    }
+  };
+
+  decrementHour = (): void => {
+    let currentState = this.state.hours;
+    if (currentState > 0) {
+      this.setState({ hours: --currentState });
+    }
+    this.changeMeasure(
+      (document.querySelector('[name="measures"]:checked') as HTMLInputElement)
+        .value
+    );
+  };
+
+  incrementHour = (): void => {
+    let currentState = this.state.hours;
+    if (currentState < 24) {
+      this.setState({ hours: ++currentState });
+    }
+    this.changeMeasure(
+      (document.querySelector('[name="measures"]:checked') as HTMLInputElement)
+        .value
+    );
+  };
+
   render() {
-    const myData = JSON.stringify(this.props.data);
-    return <div>This is results: {myData}</div>;
+    return (
+      <Grid container mt={5} alignItems="center" direction="column">
+        <Grid item>
+          <Typography variant="h3" color="primary.light">
+            You can have
+          </Typography>
+        </Grid>
+        <Grid item>
+          <Typography
+            variant="h3"
+            color="warning.light"
+            style={{ fontWeight: "bold" }}
+          >
+            {this.state.quantity}
+          </Typography>
+        </Grid>
+        <Grid item>
+          <RadioGroup
+            row
+            defaultValue={this.result[1].drinkSize}
+            name="measures"
+          >
+            {this.result.map(({ drinkSize }: { drinkSize: string }) => (
+              <FormControlLabel
+                key={drinkSize}
+                value={drinkSize}
+                control={<Radio />}
+                label={this.updateLabel(drinkSize, this.state.quantity)}
+                onClick={(e) =>
+                  this.changeMeasure((e.target as HTMLInputElement).value)
+                }
+              />
+            ))}
+          </RadioGroup>
+        </Grid>
+        <Grid item>
+          <Typography variant="h3" color="primary.light">
+            if you drive in
+          </Typography>
+        </Grid>
+        <Grid item>
+          <Button onClick={this.decrementHour} style={{ fontSize: "2em" }}>
+            -
+          </Button>
+          <Typography
+            variant="h3"
+            display="inline"
+            color="warning.light"
+            style={{ fontWeight: "bold" }}
+          >
+            {this.state.hours}
+          </Typography>
+          <Button onClick={this.incrementHour} style={{ fontSize: "2em" }}>
+            +
+          </Button>
+          {this.state.hours === 1 ? "hour" : "hours"}
+        </Grid>
+        <Grid item>
+          <Typography variant="h3" color="primary.light">
+            after finishing your drink
+          </Typography>
+        </Grid>
+      </Grid>
+    );
   }
 }

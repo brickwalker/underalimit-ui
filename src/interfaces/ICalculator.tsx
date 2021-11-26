@@ -24,12 +24,13 @@ export interface IConsumerDetailsProps {
     gender: string,
     learner: string
   ) => void;
+  loading: boolean;
 }
 
 export interface IConsumerDetailsState {}
 
 export interface ICalcResultProps {
-  data: any
+  data: any;
 }
 
 export interface ICalcResultState {}
