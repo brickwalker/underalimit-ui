@@ -1,29 +1,35 @@
-
 export interface IDrinkSelectorProps {
-  setDrink: (drinkType: string) => void
+  setDrink: (drinkType: string) => void;
 }
 
 export interface IDrinkSelectorState {}
 
 export interface IDrink {
-  name: string,
-  src: string,
-  alcPercent: number
+  name: string;
+  src: string;
+  alcPercent: number;
 }
 
 export interface IAlcSelectorProps {
-  alc: IDrink[],
-  setAlcPercent: (alcPercent: number) => void,
-  enterAlcPercent: (enteredPercent: string) => void
+  alc: IDrink[];
+  setAlcPercent: (alcPercent: number) => void;
+  enterAlcPercent: (enteredPercent: string) => void;
 }
 
-export interface IAlcSelectorState {
-  myRef: string
-}
+export interface IAlcSelectorState {}
 
 export interface IConsumerDetailsProps {
-  placeholder?: string
+  enterConsumerDetails: (
+    enteredWeight: string,
+    gender: string,
+    learner: string
+  ) => void;
 }
 
-export interface IConsumerDetailsState {
+export interface IConsumerDetailsState {}
+
+export interface ICalcResultProps {
+  data: any
 }
+
+export interface ICalcResultState {}

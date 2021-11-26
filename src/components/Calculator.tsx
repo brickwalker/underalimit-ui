@@ -38,6 +38,8 @@ import {
   IAlcSelectorState,
   IConsumerDetailsProps,
   IConsumerDetailsState,
+  ICalcResultProps,
+  ICalcResultState,
 } from "../interfaces/ICalculator";
 
 const drinks = [
@@ -82,6 +84,7 @@ export default class Calculator extends React.Component {
     weightKg: 0,
     gender: "",
     isLearner: false,
+    serverReply: null, // TODO
   };
 
   setDrink = (drinkType: string): void => {
@@ -98,6 +101,46 @@ export default class Calculator extends React.Component {
       alert("Should be between 0.5 and 100");
     } else {
       this.setAlcPercent(alcPercent);
+    }
+  };
+
+  enterConsumerDetails = (
+    enteredWeight: string,
+    gender: string,
+    learner: string
+  ): void => {
+    const bodyWeight = parseFloat(enteredWeight);
+    const isLearner: boolean = learner === "true";
+    if (bodyWeight < 40 || bodyWeight > 140) {
+      alert("Body weight should be between 40 and 140kg");
+    } else {
+      this.setState({ weightKg: bodyWeight });
+      this.setState({ gender });
+      this.setState({ isLearner });
+      const requestData = JSON.stringify({
+        drinkType: this.state.drinkType,
+        alcPercent: this.state.alcPercent,
+        weightKg: bodyWeight,
+        gender,
+        isLearner,
+      });
+      const init = {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: requestData,
+      };
+      fetch("http://localhost:4141/portion", init)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.status !== "OK") {
+            console.log("Data not OK", data);
+          } else {
+            this.setState({ serverReply: data });
+          }
+        })
+        .catch(() => console.log("Error happened"));
     }
   };
 
@@ -128,8 +171,12 @@ export default class Calculator extends React.Component {
           enterAlcPercent={this.enterAlcPercent}
         />
       );
-    } else if (this.state.alcPercent === 0 || this.state.gender === "") {
-      return <ConsumerDetails />;
+    } else if (this.state.serverReply === null) {
+      return (
+        <ConsumerDetails enterConsumerDetails={this.enterConsumerDetails} />
+      );
+    } else {
+      return <CalcResult data={this.state.serverReply} />;
     }
   }
 }
@@ -251,7 +298,7 @@ class ConsumerDetails extends React.Component<
             Please specify
           </Typography>
         </Grid>
-        <Grid item container justifyContent="center" mt={2}>
+        <Grid item container justifyContent="center" mt={3}>
           <Typography variant="subtitle2" color="primary" align="center">
             Your body weight, kg
           </Typography>
@@ -266,7 +313,7 @@ class ConsumerDetails extends React.Component<
             style={{ marginTop: "1em" }}
           />
         </Grid>
-        <Grid item container justifyContent="center" mt={2}>
+        <Grid item container justifyContent="center" mt={3}>
           <Typography variant="subtitle2" color="primary" align="center">
             Your birth gender
           </Typography>
@@ -276,7 +323,7 @@ class ConsumerDetails extends React.Component<
             row
             aria-label="gender"
             defaultValue="notProvided"
-            name="radio-buttons-group"
+            name="gender-options"
           >
             <FormControlLabel
               value="female"
@@ -291,7 +338,7 @@ class ConsumerDetails extends React.Component<
             />
           </RadioGroup>
         </Grid>
-        <Grid item container justifyContent="center" mt={2}>
+        <Grid item container justifyContent="center" mt={3}>
           <Typography variant="subtitle2" color="primary" align="center">
             Whether you are a learner driver
           </Typography>
@@ -301,16 +348,43 @@ class ConsumerDetails extends React.Component<
             row
             aria-label="isLearner"
             defaultValue="false"
-            name="radio-buttons-group"
+            name="learner-options"
           >
             <FormControlLabel value={false} control={<Radio />} label="No" />
             <FormControlLabel value={true} control={<Radio />} label="Yes" />
           </RadioGroup>
         </Grid>
-        <Grid item container justifyContent="center">
-          <Button variant="contained">Submit</Button>
+        <Grid item container justifyContent="center" mt={3}>
+          <Button
+            variant="contained"
+            onClick={() => {
+              this.props.enterConsumerDetails(
+                (document.getElementById("input-box") as HTMLInputElement)
+                  .value,
+                (
+                  document.querySelector(
+                    '[name="gender-options"]:checked'
+                  ) as HTMLInputElement
+                ).value,
+                (
+                  document.querySelector(
+                    '[name="learner-options"]:checked'
+                  ) as HTMLInputElement
+                ).value
+              );
+            }}
+          >
+            Submit
+          </Button>
         </Grid>
       </Grid>
     );
+  }
+}
+
+class CalcResult extends React.Component<ICalcResultProps, ICalcResultState> {
+  render() {
+    const myData = JSON.stringify(this.props.data);
+    return <div>This is results: {myData}</div>;
   }
 }
